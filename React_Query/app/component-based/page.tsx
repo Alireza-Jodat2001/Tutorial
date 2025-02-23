@@ -1,7 +1,7 @@
 'use client';
 
 import { fetchPosts } from '@/apis/graphQLClient';
-import { FetchUsersProps } from '@/types/componentBased.type';
+import { FetchUsersProps, PaginationData, SelectType, User } from '@/types/componentBased.type';
 import { FAKE_QUERY_KEY, FETCHING, IDEA, POSTS, QueryKeys, TODO } from '@/types/reactQuery.type';
 import { Button } from '@material-tailwind/react';
 import { keepPreviousData, queryOptions, skipToken, useInfiniteQuery, useIsFetching, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -154,37 +154,29 @@ export default function page() {
   function TestUseInfiniteQuery() {
     async function fetchUsers({ pageParam }: FetchUsersProps) {
       try {
-        const { data } = await axios.get(`https://reqres.in/api/users?page=${pageParam}&per_page=2`);
-        console.log(data);
+        const { data } = await axios.get<PaginationData>(`https://reqres.in/api/users?page=${pageParam}&per_page=2`);
         return data;
       } catch {
         throw new Error('Failed to fetch...');
       }
     }
-    const { data, fetchNextPage } = useInfiniteQuery({
+    const { data, fetchNextPage } = useInfiniteQuery<User[], string, User[], PaginationData>({
       queryKey: [IDEA],
       queryFn: fetchUsers,
       initialPageParam: 1,
-      select: data => {
-        console.log(data);
-        return undefined;
-      },
-      getNextPageParam: ({ page, total_pages }) => {
-        const nextPage = page + 1;
-        return nextPage <= total_pages ? nextPage : undefined;
-      },
+      select: (data: SelectType): User[] => data.pages.flatMap(({ data }) => data.map(({ first_name, avatar, last_name }) => ({ first_name, avatar, last_name }))),
+      getNextPageParam: ({ page, total_pages }: PaginationData) => (page + 1 <= total_pages ? page + 1 : undefined),
     });
-    console.log(data);
     return (
       <>
         use infinite queries
         <Button onClick={() => fetchNextPage()}>next</Button>
         <div className='flex flex-wrap gap-3'>
-          {/* {data.map(({ first_name, last_name, avatar }, index) => (
+          {(data as User[]).map(({ first_name, last_name, avatar }, index) => (
             <div key={index}>
               <img src={avatar} alt={`${first_name} ${last_name}`} /> {first_name} {last_name}
             </div>
-          ))} */}
+          ))}
         </div>
       </>
     );
