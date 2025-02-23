@@ -8,8 +8,6 @@ interface SignupResponse {
   refresh_token: string;
 }
 
-export type OnSubmitFunction = (values: SignUpFormValues) => void;
-
 export type CallSignUpApiFunction = (data: SignUpFormValues) => Promise<SignupResponse>;
 
 export type SetTokenCookiesFunction = (data: SignupResponse) => void;

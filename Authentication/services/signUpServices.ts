@@ -1,9 +1,9 @@
 'use client';
 
-import { SignUpFormValues } from '@/types/signup.type';
-import { yupResolver } from '@hookform/resolvers/yup';
-import { signUpSchema } from '@/schema/signupSchema';
 import { useForm } from 'react-hook-form';
+import { signUpSchema } from '@/schema/signupSchema';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { SignUpFormValues } from '@/types/signup.type';
 
 const signUpServices = () => {
   const { register, formState, handleSubmit, watch } = useForm<SignUpFormValues>({ resolver: yupResolver(signUpSchema), mode: 'onChange' });

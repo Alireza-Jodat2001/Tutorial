@@ -1,9 +1,9 @@
 'use server';
 
-import { CallSignUpApiFunction, OnSubmitFunction, SetTokenCookiesFunction } from '@/types/signup.type';
 import axios from 'axios';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { CallSignUpApiFunction, SetTokenCookiesFunction, SignUpFormValues } from '@/types/signup.type';
 
 // this function for set cookies (access_token & refresh_token)
 export const setTokenCookies: SetTokenCookiesFunction = async ({ access_token, refresh_token }) => {
@@ -21,8 +21,8 @@ const callSignUpApi: CallSignUpApiFunction = async body => {
 };
 
 // this function for handle submit
-export const signUpAction: OnSubmitFunction = async values => {
+export const signUpAction = async (values: SignUpFormValues) => {
   const data = await callSignUpApi(values);
-  await setTokenCookies(data);
+  setTokenCookies(data);
   redirect('/dashboard');
 };
