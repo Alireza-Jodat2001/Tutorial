@@ -1,13 +1,13 @@
 'use client';
 
+import axios from 'axios';
+import { toast } from 'react-toastify';
+import { useEffect, useState } from 'react';
 import { fetchPosts } from '@/apis/graphQLClient';
+import { Button } from '@material-tailwind/react';
 import { FetchUsersProps, PaginationData, SelectType, User } from '@/types/componentBased.type';
 import { FAKE_QUERY_KEY, FETCHING, IDEA, POSTS, QueryKeys, TODO } from '@/types/reactQuery.type';
-import { Button } from '@material-tailwind/react';
 import { keepPreviousData, queryOptions, skipToken, useInfiniteQuery, useIsFetching, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
-import axios from 'axios';
-import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
 
 export default function page() {
   const groupOptions = (queryKey: QueryKeys) => queryOptions({ queryKey: [queryKey], queryFn: fetchPosts });
@@ -150,7 +150,7 @@ export default function page() {
     );
   }
 
-  // useInfiniteQuery
+  // useInfiniteQuery /* next directional */
   function TestUseInfiniteQuery() {
     async function fetchUsers({ pageParam }: FetchUsersProps) {
       try {
@@ -160,17 +160,26 @@ export default function page() {
         throw new Error('Failed to fetch...');
       }
     }
-    const { data, fetchNextPage } = useInfiniteQuery<User[], string, User[], PaginationData>({
+    const { data, fetchNextPage, fetchPreviousPage, hasNextPage, hasPreviousPage, isFetchingNextPage, isFetchingPreviousPage } = useInfiniteQuery({
       queryKey: [IDEA],
       queryFn: fetchUsers,
       initialPageParam: 1,
       select: (data: SelectType): User[] => data.pages.flatMap(({ data }) => data.map(({ first_name, avatar, last_name }) => ({ first_name, avatar, last_name }))),
       getNextPageParam: ({ page, total_pages }: PaginationData) => (page + 1 <= total_pages ? page + 1 : undefined),
+      getPreviousPageParam: () => 1,
+      initialData: undefined,
+      placeholderData: keepPreviousData,
     });
+    console.log(isFetchingNextPage);
     return (
       <>
         use infinite queries
-        <Button onClick={() => fetchNextPage()}>next</Button>
+        <Button onClick={() => fetchPreviousPage()} disabled={!hasPreviousPage}>
+          previous
+        </Button>
+        <Button onClick={() => fetchNextPage()} disabled={!hasNextPage}>
+          next
+        </Button>
         <div className='flex flex-wrap gap-3'>
           {(data as User[]).map(({ first_name, last_name, avatar }, index) => (
             <div key={index}>
@@ -178,8 +187,14 @@ export default function page() {
             </div>
           ))}
         </div>
+        {/* <List onEndReached={() => !isFetchingNextPage && fetchNextPage()} /> */}
       </>
     );
+  }
+
+  // Bi-directional infinite query
+  function TestBiDirectionalInfiniteQuery() {
+    return <div>Bi-directional infinite query</div>;
   }
 
   return (
@@ -196,7 +211,8 @@ export default function page() {
       {/* <TestSkipToken /> */}
       {/* <TestQueryRetriesAndDelayRetries /> */}
       {/* <TestPaginatedQueries /> */}
-      <TestUseInfiniteQuery />
+      {/* <TestUseInfiniteQuery /> */}
+      <TestBiDirectionalInfiniteQuery />
     </div>
   );
 }
